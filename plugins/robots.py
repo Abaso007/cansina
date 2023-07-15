@@ -8,8 +8,8 @@ def process_robots(target):
     '''
     interesting_entries = []
     try:
-        result = requests.get(target + "robots.txt")
-        if not result.status_code == 200:
+        result = requests.get(f"{target}robots.txt")
+        if result.status_code != 200:
             return
         for line in result.text.splitlines():
             if line.startswith("Disallow:") or line.startswith("Allow:"):

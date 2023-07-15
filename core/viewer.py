@@ -33,8 +33,8 @@ def viewer(project_name):
         import traceback
 
         traceback.print_exc()
-        print("Error opening database {}".format(project_name))
-        print("Details: {}".format(e))
+        print(f"Error opening database {project_name}")
+        print(f"Details: {e}")
         sys.exit(-1)
 
 
@@ -114,7 +114,7 @@ def tree(data):
         component = resource.split("/")[0]
         if not component:
             return
-        if not component in root.keys():
+        if component not in root.keys():
             root[component] = {}
         resource = "/".join(resource.split("/")[1:])
         _put_into_dict(root[component], resource=resource)

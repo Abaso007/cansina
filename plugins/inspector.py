@@ -26,13 +26,13 @@ class Inspector:
             HTTP response code, resquest size, md5 of the content and the content
             itself. If there were a redirection it will record the new url"""
         s = []
-        for n in range(0, 42):
+        for _ in range(0, 42):
             random.seed()
             s.append(chr(random.randrange(97, 122)))
         s = "".join(s)
         target = self.target + s
 
-        print("Checking with %s" % target)
+        print(f"Checking with {target}")
 
         page = requests.get(target, headers=user_agent, verify=False)
         content = page.content
@@ -43,7 +43,7 @@ class Inspector:
                   'content': content,
                   'location': None}
 
-        if len(page.history) >= 1:
+        if page.history:
             result['location'] = page.url
 
         return result

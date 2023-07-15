@@ -66,8 +66,7 @@ class Throughput:
         self.deltas.append(delta)
 
     def get(self):
-        deltas_len = len(self.deltas)
-        if deltas_len:
+        if deltas_len := len(self.deltas):
             return round(sum(self.deltas) / deltas_len, 2)
         else:
             return 0.0
@@ -169,9 +168,9 @@ class Console:
         if Console.show_colors:
             if net_throughput < 553:
                 color = GREEN
-            elif net_throughput >= 553 and net_throughput < 998:
+            elif net_throughput < 998:
                 color = YELLOW
-            elif net_throughput >= 998:
+            else:
                 color = RED
 
         sys.stdout.write(
@@ -186,13 +185,13 @@ class Console:
         if Console.show_colors:
             if task.response_code == 200:
                 color = GREEN
-            if task.response_code == 401 or task.response_code == 403:
+            if task.response_code in [401, 403]:
                 color = RED
             if task.response_code == 404 or (
                 task.response_code in task.banned_response_codes
             ):
                 color = GRAY
-            if task.response_code == 301 or task.response_code == 302:
+            if task.response_code in [301, 302]:
                 color = LBLUE
             if str(task.response_code).startswith("5") or task.response_code == 400:
                 color = YELLOW
@@ -202,7 +201,7 @@ class Console:
         target = task.get_complete_target()
         target = urlparse.urlsplit(target).path
         if task.location:
-            target = target + " -> " + task.location
+            target = f"{target} -> {task.location}"
 
         # Full path
         if Console.show_full_path:
@@ -230,7 +229,7 @@ class Console:
             size_color = BLUE if Console.show_colors else ""
             formatted_task = f"\r{DEL}{color}{task.response_code:^3}{ENDC} {size_color}{task.response_size:>10} bytes{ENDC} {content_type} {target}"
 
-            if not target in Console.juicy_entries:
+            if target not in Console.juicy_entries:
                 Console.juicy_entries[target] = formatted_task
 
             if not Console.show_progress:

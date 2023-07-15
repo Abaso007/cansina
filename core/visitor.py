@@ -110,14 +110,7 @@ class Visitor(threading.Thread):
             # Detect redirect to same page but ended with slash
             if url == origin:
                 return True
-            if url == origin + "/":
-                return True
-
-            # Detect redirect to root
-            if url == task.target:
-                return True
-
-            return False
+            return True if url == f"{origin}/" else url == task.target
 
         try:
             if Visitor.user_agent:

@@ -22,13 +22,11 @@ def check_domain(target_url):
 def prepare_target(target_url):
     """Examine target url compliance adding default handle (http://) and look for a final /"""
 
-    if target_url.startswith("http://") or target_url.startswith("https://"):
-        pass
-    else:
-        target_url = "http://" + target_url
-    if target_url.endswith("/") or "***" in target_url:
-        pass
-    else:
+    if not target_url.startswith("http://") and not target_url.startswith(
+        "https://"
+    ):
+        target_url = f"http://{target_url}"
+    if not target_url.endswith("/") and "***" not in target_url:
         target_url += "/"
     check_domain(target_url)
     return target_url
@@ -49,7 +47,7 @@ def prepare_proxies(proxies):
 
 
 def make_cookie_jar(cookies):
-    d = dict()
+    d = {}
     c = cookies.split(",")
     if c[0] == "":
         return d

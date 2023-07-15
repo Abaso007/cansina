@@ -75,12 +75,11 @@ class Task:
         )
 
     def get_complete_target(self):
-        if "***" in self.target:
-            self.target = self.target.replace("***", self.resource.replace("/", ""))
-            self.resource = ""
-            return self.target + self.extension
-        else:
+        if "***" not in self.target:
             return self.target + self.resource + self.extension
+        self.target = self.target.replace("***", self.resource.replace("/", ""))
+        self.resource = ""
+        return self.target + self.extension
 
     def content_has_detected(self, value):
         self.content_detected = value

@@ -16,9 +16,9 @@ USER_AGENT = "Mozilla/5.0 (Windows; U; MSIE 10.0; Windows NT 9.0; en-EN)"
 user_agent = {"user-agent": USER_AGENT}
 DESIRABLE_EXTENSIONS = ['.html', '.htm', '.inc', '.php', '.asp', '.aspx', '.txt']
 
-_non_visited_links = list()
-_visited_links = list()
-_loot = dict()
+_non_visited_links = []
+_visited_links = []
+_loot = {}
 
 
 def visit(scheme, domain, resource):
@@ -27,14 +27,14 @@ def visit(scheme, domain, resource):
         return a 'resources' list with unique elements
     '''
     global _non_visited_links
-    temporal_resource_list = list()
+    temporal_resource_list = []
 
     if resource.startswith('/'):
-        url = "%s://%s%s" % (scheme, domain, resource)
+        url = f"{scheme}://{domain}{resource}"
     else:
-        url = "%s://%s/%s" % (scheme, domain, resource)
+        url = f"{scheme}://{domain}/{resource}"
 
-    print("visiting: url: %s" % url)
+    print(f"visiting: url: {url}")
     request = requests.get(url, headers=user_agent)
     soup = BeautifulSoup(request.text)
     resources = {
@@ -49,10 +49,7 @@ def visit(scheme, domain, resource):
 
     for res in resources.values():
         tags, attr = res
-        for tag in tags:
-            if tag.has_attr(attr):
-                temporal_resource_list.append(tag[attr])
-
+        temporal_resource_list.extend(tag[attr] for tag in tags if tag.has_attr(attr))
     if resource.startswith('/'):
         resource = resource[1:]
 
@@ -67,7 +64,7 @@ def resource_filter(domain, resource_set):
         p_domain = urlparse.urlparse(resource).netloc
         if p_resource.startswith('/'):
             p_resource = p_resource[1:]
-        if p_domain and not p_domain == domain:
+        if p_domain and p_domain != domain:
             continue
         if p_resource not in _visited_links and p_resource not in _non_visited_links:
             if is_interesting(p_resource):
@@ -79,11 +76,11 @@ def is_interesting(resource):
     '''
         Filter a resource container with non-desired resources
     '''
-    if resource == '/' or resource == '':
+    if resource in ['/', '']:
         return False
 
     # Remove #resouces or javascript functions
-    banned_set = set(['(', ')', '#'])
+    banned_set = {'(', ')', '#'}
     check_set = set(resource)
     if any(banned_set & check_set):
         return False
@@ -92,11 +89,9 @@ def is_interesting(resource):
     last_path_component = urlparse.urlparse(resource).path.split('/')[-1]
     if '.' not in last_path_component:
         return True
-    else:
-        for extension in DESIRABLE_EXTENSIONS:
-            if extension in last_path_component:
-                return True
-    return False
+    return any(
+        extension in last_path_component for extension in DESIRABLE_EXTENSIONS
+    )
 
 
 def recursive_dict_key_finder(key, dictionary):
@@ -120,11 +115,10 @@ def get_into_loot(resource):
 
 def check_for_302(url):
     req = requests.get(url)
-    if req.status_code in ['301', '302']:
-        print("[CRAWLER] Crawling relocation instead -> %s" % req.history[0].url)
-        return req.history[0].url
-    else:
+    if req.status_code not in {'301', '302'}:
         return url
+    print(f"[CRAWLER] Crawling relocation instead -> {req.history[0].url}")
+    return req.history[0].url
 
 
 if __name__ == '__main__':
@@ -139,5 +133,7 @@ if __name__ == '__main__':
             current_resource = _non_visited_links.pop()
             visit(scheme=components.scheme, domain=components.netloc, resource=current_resource)
         except KeyboardInterrupt:
-            print("Was visiting %s://%s%s" % (components.scheme, components.netloc, current_resource))
+            print(
+                f"Was visiting {components.scheme}://{components.netloc}{current_resource}"
+            )
     print(_visited_links)
