@@ -92,31 +92,29 @@ try:
         data = cursor.fetchall()
 
 except Exception as e:
-    print("Error opening database {}".format(project_name))
-    print("Details: {}".format(e))
+    print(f"Error opening database {project_name}")
+    print(f"Details: {e}")
     sys.exit(-1)
 
 
 def is_banned(resource):
-    for banned in banned_extensions.split(","):
-        if banned in resource.split("/")[-1]:
-            return True
-    return False
+    return any(
+        banned in resource.split("/")[-1]
+        for banned in banned_extensions.split(",")
+    )
 
 
 def is_ubanned(resource):
-    if not "." in resource.split("/")[-1]:
+    if "." not in resource.split("/")[-1]:
         return True
-    for unbanned in unbanned_extensions.split(","):
-        if unbanned in resource.split("/")[-1]:
-            return True
-    return False
+    return any(
+        unbanned in resource.split("/")[-1]
+        for unbanned in unbanned_extensions.split(",")
+    )
 
 
 def size_is_banned(size):
-    if str(size) in size_filter.split(","):
-        return True
-    return False
+    return str(size) in size_filter.split(",")
 
 
 def table():
@@ -131,11 +129,11 @@ def table():
     if used_payloads:
         output = {}
         for k, v in data:
-            if not k in output:
+            if k not in output:
                 output[k] = [v]
                 continue
             output[k].append(v)
-        for k in output.keys():
+        for k in output:
             print("{}{}:".format(GREEN, k))
             output[k].sort()
             for v in set(output[k]):
@@ -202,7 +200,7 @@ def ftree():
         component = resource.split("/")[0]
         if not component:
             return
-        if not component in root.keys():
+        if component not in root.keys():
             root[component] = {}
         resource = "/".join(resource.split("/")[1:])
         _put_into_dict(root[component], resource=resource)

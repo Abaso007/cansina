@@ -18,9 +18,9 @@ def _get_url_components(target):
     temp_path = ""
     list_path = ["/"]
     for component in path:
-        sub = "/%s" % component
+        sub = f"/{component}"
         temp_path += sub
-        list_path.append(temp_path + "/")
+        list_path.append(f"{temp_path}/")
     return list_path
 
 
@@ -96,20 +96,14 @@ def _populate_list_with_file(file_name, linenumber):
         if e.startswith("/"):
             e = e[1:]
 
-        if sys.version_info[0] == 3:
-            e_encode = e
-        else:
-            e_encode = e.decode("utf-8", "replace")
+        e_encode = e if sys.version_info[0] == 3 else e.decode("utf-8", "replace")
         clean_list.append(e_encode)
     return clean_list
 
 
 def _has_extension(res):
     # whether the last path sector has '.'
-    if res.rfind("/") == -1:
-        return "." in res
-    else:
-        return "." in res[res.rfind("/") :]
+    return "." in res if res.rfind("/") == -1 else "." in res[res.rfind("/") :]
 
 
 class Payload:
@@ -120,7 +114,7 @@ class Payload:
         # Payload may be a filename, a python list, a directory or a file with
         # paths to multiple payload files
         self.payload_filename = (
-            payload_filename if not type(payload_filename) == list else "robots.txt"
+            payload_filename if type(payload_filename) != list else "robots.txt"
         )
         self.linenumber = resumer.get_line()
         self.payload = _populate_list_with_file(payload_filename, self.linenumber)
@@ -180,8 +174,8 @@ class Payload:
 
     def _feed_queue(self):
         for resource in self.payload:
-            if self.only_alpha:
-                if not resource.isalnum():
+            if not resource.isalnum():
+                if self.only_alpha:
                     continue
 
             if self.uppercase:
@@ -208,8 +202,8 @@ class Payload:
                     resource += "/"
 
                 # Put a . before extension if the users didnt do it
-                if extension and not "." in extension:
-                    extension = "." + extension
+                if extension and "." not in extension:
+                    extension = f".{extension}"
 
                 self.task_id += 1
                 task = Task(self.task_id, self.target, resource, extension)

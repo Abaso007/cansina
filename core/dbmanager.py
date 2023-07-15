@@ -6,7 +6,7 @@ import queue
 
 from core.printer import Console
 
-OUTPUT_DIR = "output" + os.sep
+OUTPUT_DIR = f"output{os.sep}"
 SUFIX = ".sqlite"
 
 
@@ -52,20 +52,13 @@ class DBManager:
         self.queue.put(task)
 
     def save(self):
-        output = None
-        if self.output:
-            output = open(self.output, "a")
-
+        output = open(self.output, "a") if self.output else None
         while not self.queue.empty():
             task = self.queue.get()
             self.process(task)
             if output and not task.ignorable:
                 output.write(
-                    "{},{},{}\n".format(
-                        task.response_code,
-                        task.get_complete_target(),
-                        task.response_size,
-                    )
+                    f"{task.response_code},{task.get_complete_target()},{task.response_size}\n"
                 )
             self.queue.task_done()
 
@@ -93,7 +86,7 @@ class DBManager:
             print(e)
         # TODO banned response code at user will
         if not cursor.fetchone():
-            if not task.response_code == 404 or not task.ignorable:
+            if task.response_code != 404 or not task.ignorable:
                 cursor.execute(
                     "INSERT INTO requests VALUES (?,?,?,?,?,?,?,?,?,?)",
                     task.values() + (time.time(),),
